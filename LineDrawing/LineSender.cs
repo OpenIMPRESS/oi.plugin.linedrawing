@@ -1,20 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using oi.core.network;
 
 namespace oi.plugin.linedrawing {
 
     public class LineSender : MonoBehaviour {
 
-        public IMPRESS_UDPClient udpConnector;
-        private IMPRESS_LineDrawer lineDrawer;
+        public UDPConnector udpConnector;
+        private LineDrawer lineDrawer;
         private bool connected = false;
 
         void Start() {
-            lineDrawer = FindObjectOfType<IMPRESS_LineDrawer>();
+            lineDrawer = FindObjectOfType<LineDrawer>();
 
             LineSource[] lineSources = Resources.FindObjectsOfTypeAll(typeof(LineSource)) as LineSource[];
             foreach (LineSource lineSource in lineSources) {
+                if (lineSource.GetType() == typeof(LineReceiver)) {
+                    Debug.Log("Ignoring LineReceiver");
+                    continue;
+                }
                 lineSource.OnNewPoint += NewPoint;
                 lineSource.OnLineSettings += LineSettings;
                 lineSource.OnRemoveLine += RemoveLine;
@@ -32,7 +37,7 @@ namespace oi.plugin.linedrawing {
         }
 
 
-        void NewPoint(int lineID, int pointID, Vector3 point) {
+        void NewPoint(string lineID, int pointID, Vector3 point) {
             byte[] serialized = LinePointSerializer.Serialize(lineID, pointID, point);
             udpConnector.SendData(serialized);
         }
@@ -42,12 +47,12 @@ namespace oi.plugin.linedrawing {
             udpConnector.SendData(serialized);
         }
 
-        void RemoveLine(int lineID) {
+        void RemoveLine(string lineID) {
             byte[] serialized = LineRemoveSerializer.Serialize(lineID);
             udpConnector.SendData(serialized);
         }
 
-        void LineSettings(int lineID, Color col, float width) {
+        void LineSettings(string lineID, Color col, float width) {
             byte[] serialized = LineSettingsSerializer.Serialize(lineID, col, width);
             udpConnector.SendData(serialized);
         }
@@ -55,8 +60,8 @@ namespace oi.plugin.linedrawing {
 
         void SendAllLines() {
             ResetLines();
-            Dictionary<int, LineRenderer> lines = lineDrawer.GetLines();
-            foreach (KeyValuePair<int, LineRenderer> entry in lines) {
+            Dictionary<string, LineRenderer> lines = lineDrawer.GetLines();
+            foreach (KeyValuePair<string, LineRenderer> entry in lines) {
                 LineRenderer line = entry.Value;
                 LineSettings(entry.Key, line.startColor, line.widthMultiplier);
                 for (int i = 0; i < line.positionCount; i++) {

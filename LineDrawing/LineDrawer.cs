@@ -5,7 +5,7 @@ using UnityEngine;
 namespace oi.plugin.linedrawing {
 
     public class LineDrawer : MonoBehaviour {
-        private Dictionary<int, LineRenderer> lines = new Dictionary<int, LineRenderer>();
+        private Dictionary<string, LineRenderer> lines = new Dictionary<string, LineRenderer>();
         public Material lineMat;
 
         // Use this for initialization
@@ -19,26 +19,26 @@ namespace oi.plugin.linedrawing {
             }
         }
 
-        public Dictionary<int, LineRenderer> GetLines() {
+        public Dictionary<string, LineRenderer> GetLines() {
             return lines;
         }
 
         void ResetLines() {
-            foreach (KeyValuePair<int, LineRenderer> entry in lines) {
+            foreach (KeyValuePair<string, LineRenderer> entry in lines) {
                 LineRenderer line = entry.Value;
                 Destroy(line.gameObject);
             }
             lines.Clear();
         }
 
-        void RemoveLine(int lineID) {
+        void RemoveLine(string lineID) {
             if (lines.ContainsKey(lineID)) {
                 Destroy(lines[lineID].gameObject);
                 lines.Remove(lineID);
             }
         }
 
-        void LineSettings(int lineID, Color col, float width) {
+        void LineSettings(string lineID, Color col, float width) {
             if (!lines.ContainsKey(lineID))
                 StartNewLine(lineID);
             LineRenderer line = lines[lineID];
@@ -47,10 +47,9 @@ namespace oi.plugin.linedrawing {
             line.startColor = col;
             line.endColor = col;
             line.widthMultiplier = width;
-            line.GetComponent<ShowMeshBounds>().color = col;
         }
 
-        void StartNewLine(int lineID) {
+        void StartNewLine(string lineID) {
             GameObject obj = new GameObject();
             obj.layer = gameObject.layer;
             obj.transform.SetParent(transform);
@@ -68,14 +67,10 @@ namespace oi.plugin.linedrawing {
             BoxCollider collider = line.gameObject.AddComponent<BoxCollider>();
             collider.isTrigger = true;
             collider.enabled = true;
-
-            ShowMeshBounds meshBounds = line.gameObject.AddComponent<ShowMeshBounds>();
-            meshBounds.line = line;
-
             lines.Add(lineID, line);
         }
 
-        void NewPoint(int lineID, int index, Vector3 point) {
+        void NewPoint(string lineID, int index, Vector3 point) {
             if (!lines.ContainsKey(lineID))
                 StartNewLine(lineID);
             LineRenderer line = lines[lineID];

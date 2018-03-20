@@ -6,13 +6,14 @@ namespace oi.plugin.linedrawing {
 
     public static class LinePointSerializer {
 
-        public static byte[] Serialize(int lineID, int pointID, Vector3 pos) {
+        public static byte[] Serialize(string lineID, int pointID, Vector3 pos) {
             byte[] data = null;
 
             using (MemoryStream stream = new MemoryStream()) {
                 using (BinaryWriter writer = new BinaryWriter(stream)) {
 
                     writer.Write(3); // '3' announces line point packet
+                    //writer.Write((short) lineID.Length);
                     writer.Write(lineID);
                     writer.Write(pointID);
                     WritePosition(writer, pos);
@@ -26,17 +27,19 @@ namespace oi.plugin.linedrawing {
             return data;
         }
 
-        public static void Deserialize(byte[] data, out int lineID, out int pointID, out Vector3 pos) {
+        public static void Deserialize(byte[] data, out string lineID, out int pointID, out Vector3 pos) {
             pos = new Vector3();
             pointID = -1;
-            lineID = -1;
+            lineID = "";
 
             using (MemoryStream stream = new MemoryStream(data)) {
                 using (BinaryReader reader = new BinaryReader(stream)) {
                     int packetID = reader.ReadInt32();
                     if (packetID != 3) return;
 
-                    lineID = reader.ReadInt32();
+                    //int lineIDLength = reader.ReadInt16();
+                    //lineID = System.Text.Encoding.Default.GetString(reader.ReadBytes(lineIDLength));
+                    lineID = reader.ReadString();
                     pointID = reader.ReadInt32();
                     pos = ReadPosition(reader);
                 }
@@ -64,13 +67,14 @@ namespace oi.plugin.linedrawing {
 
     public static class LineSettingsSerializer {
 
-        public static byte[] Serialize(int lineID, Color col, float width) {
+        public static byte[] Serialize(string lineID, Color col, float width) {
             byte[] data = null;
 
             using (MemoryStream stream = new MemoryStream()) {
                 using (BinaryWriter writer = new BinaryWriter(stream)) {
 
                     writer.Write(4); // '4' announces line settings packet
+                   // writer.Write((short)lineID.Length);
                     writer.Write(lineID);
                     WriteColor(writer, col);
                     writer.Write(width);
@@ -84,8 +88,8 @@ namespace oi.plugin.linedrawing {
             return data;
         }
 
-        public static void Deserialize(byte[] data, out int lineID, out Color col, out float width) {
-            lineID = -1;
+        public static void Deserialize(byte[] data, out string lineID, out Color col, out float width) {
+            lineID = "";
             col = new Color();
             width = 0.01f;
 
@@ -93,8 +97,9 @@ namespace oi.plugin.linedrawing {
                 using (BinaryReader reader = new BinaryReader(stream)) {
                     int packetID = reader.ReadInt32();
                     if (packetID != 4) return;
-
-                    lineID = reader.ReadInt32();
+                    //int lineIDLength = reader.ReadInt16();
+                    //lineID = System.Text.Encoding.Default.GetString(reader.ReadBytes(lineIDLength));
+                    lineID = reader.ReadString();
                     col = ReadColor(reader);
                     width = reader.ReadSingle();
                 }
@@ -123,13 +128,14 @@ namespace oi.plugin.linedrawing {
 
     public static class LineRemoveSerializer {
 
-        public static byte[] Serialize(int lineID) {
+        public static byte[] Serialize(string lineID) {
             byte[] data = null;
 
             using (MemoryStream stream = new MemoryStream()) {
                 using (BinaryWriter writer = new BinaryWriter(stream)) {
 
                     writer.Write(5); // '5' announces line remove packet
+                    //writer.Write((short)lineID.Length);
                     writer.Write(lineID);
 
                     stream.Position = 0;
@@ -141,15 +147,16 @@ namespace oi.plugin.linedrawing {
             return data;
         }
 
-        public static void Deserialize(byte[] data, out int lineID) {
-            lineID = -1;
+        public static void Deserialize(byte[] data, out string lineID) {
+            lineID = "";
 
             using (MemoryStream stream = new MemoryStream(data)) {
                 using (BinaryReader reader = new BinaryReader(stream)) {
                     int packetID = reader.ReadInt32();
                     if (packetID != 5) return;
-
-                    lineID = reader.ReadInt32();
+                    //int lineIDLength = reader.ReadInt16();
+                    //lineID = System.Text.Encoding.Default.GetString(reader.ReadBytes(lineIDLength));
+                    lineID = reader.ReadString();
                 }
             }
         }

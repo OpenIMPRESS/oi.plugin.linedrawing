@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using oi.core.network;
+
 namespace oi.plugin.linedrawing {
 
     public enum LineDrawMode {
@@ -11,12 +13,14 @@ namespace oi.plugin.linedrawing {
 
     public class LineDrawCapture : LineSource {
 
+        private string lineIDPrefix = "_";
+
         private Vector3 lastPos;
         private float lastDist = 0;
         private Vector3 heading;
         private bool trackHeading = false;
         private int pointAm = 0;
-        private int lineID = 0;
+        private string lineID = "0";
         public static int globalLineID = 0;
 
         public Color col;
@@ -28,12 +32,14 @@ namespace oi.plugin.linedrawing {
         public bool buttonDown = false;
         public bool pauze = false;
         public bool resetDrawings = false;
-        private int collidingID = -1;
+        private string collidingID = "";
 
         private Material mat;
 
         // Use this for initialization
         void Start() {
+            SessionManager sm = FindObjectOfType<SessionManager>();
+            if (sm != null) lineIDPrefix = sm.GetGUID();
             ResetLines();
             GetComponent<Renderer>().material = new Material(GetComponent<Renderer>().material);
             mat = GetComponent<Renderer>().material;
@@ -42,13 +48,13 @@ namespace oi.plugin.linedrawing {
         }
 
         private void OnTriggerEnter(Collider other) {
-            collidingID = int.Parse(other.gameObject.name);
+            collidingID = other.gameObject.name;
         }
 
         private void OnTriggerExit(Collider other) {
-            int id = int.Parse(other.gameObject.name);
+            string id = other.gameObject.name;
             if (collidingID == id) {
-                collidingID = -1;
+                collidingID = "";
             }
         }
 
@@ -65,7 +71,7 @@ namespace oi.plugin.linedrawing {
 
         void StartNewLine() {
             globalLineID++;
-            lineID = globalLineID;
+            lineID = lineIDPrefix+"_"+globalLineID;
             pointAm = 0;
             NewPos(transform.position);
             LineSettings(lineID, col, size);
@@ -98,9 +104,9 @@ namespace oi.plugin.linedrawing {
 
             if (buttonDown && !pauze) {
                 if (mode == LineDrawMode.erase) {
-                    if (collidingID != -1) {
+                    if (collidingID != "") {
                         RemoveLine(collidingID);
-                        collidingID = -1;
+                        collidingID = "";
                     }
                 } else if (mode == LineDrawMode.draw && !recording) {
                     recording = true;

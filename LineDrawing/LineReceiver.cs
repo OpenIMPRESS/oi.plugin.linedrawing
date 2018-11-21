@@ -20,38 +20,35 @@ namespace oi.plugin.linedrawing {
         }
 
         void UpdateReceiveData() {
-            byte[] data = UDPClient.GetNewData();
-            while (data != null) {
-                if (data.Length != 0) {
-
-                    int packetID = -1;
-                    using (MemoryStream str = new MemoryStream(data)) {
-                        using (BinaryReader reader = new BinaryReader(str)) {
-                            packetID = reader.ReadInt32();
-                        }
-                    }
-
-                    if (packetID == 3) {  // line point packet
-                        string lineID;
-                        int pointID;
-                        Vector3 pos;
-                        LinePointSerializer.Deserialize(data, out lineID, out pointID, out pos);
-                        NewPoint(lineID, pointID, pos);
-                    } else if (packetID == 4) {    // line settings packet
-                        string lineID;
-                        Color col;
-                        float width;
-                        LineSettingsSerializer.Deserialize(data, out lineID, out col, out width);
-                        LineSettings(lineID, col, width);
-                    } else if (packetID == 5) {    // line remove packet
-                        string lineID;
-                        LineRemoveSerializer.Deserialize(data, out lineID);
-                        RemoveLine(lineID);
-                    } else if (packetID == 6) {    // lines reset packet
-                        ResetLines();
+            OIMSG msg = UDPClient.GetNewData();
+            while (msg != null && msg.data != null && msg.data.Length != 0) {
+                int packetID = -1;
+                using (MemoryStream str = new MemoryStream(msg.data)) {
+                    using (BinaryReader reader = new BinaryReader(str)) {
+                        packetID = reader.ReadInt32();
                     }
                 }
-                data = UDPClient.GetNewData();
+
+                if (packetID == 3) {  // line point packet
+                    string lineID;
+                    int pointID;
+                    Vector3 pos;
+                    LinePointSerializer.Deserialize(msg.data, out lineID, out pointID, out pos);
+                    NewPoint(lineID, pointID, pos);
+                } else if (packetID == 4) {    // line settings packet
+                    string lineID;
+                    Color col;
+                    float width;
+                    LineSettingsSerializer.Deserialize(msg.data, out lineID, out col, out width);
+                    LineSettings(lineID, col, width);
+                } else if (packetID == 5) {    // line remove packet
+                    string lineID;
+                    LineRemoveSerializer.Deserialize(msg.data, out lineID);
+                    RemoveLine(lineID);
+                } else if (packetID == 6) {    // lines reset packet
+                    ResetLines();
+                }
+                msg = UDPClient.GetNewData();
             }
         }
     }

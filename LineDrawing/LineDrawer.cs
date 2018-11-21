@@ -56,6 +56,9 @@ namespace oi.plugin.linedrawing {
             obj.name = lineID.ToString();
 
             LineRenderer line = obj.AddComponent<LineRenderer>();
+            line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            line.receiveShadows = false;
+            
             line.positionCount = 0;
             line.useWorldSpace = false;
             line.numCapVertices = 4;
